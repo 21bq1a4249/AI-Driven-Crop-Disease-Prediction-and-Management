@@ -9,29 +9,19 @@ from PIL import Image
 import pickle
 import plotly.graph_objects as go
 import plotly.express as px
+import joblib
 
-# Paths for model, scaler, and assets
-MODEL_PATH = 'weather_model.pkl'
-SCALER_PATH = 'scaler.pkl'
-
-# Load Model and Scaler
-def load_pkl(fname):
-    with open(fname, 'rb') as f:
-        obj = pickle.load(f)
-    return obj
-
-model = load_pkl(MODEL_PATH)
-scaler = load_pkl(SCALER_PATH)
+model = joblib.load('gradient_boosting_model.pkl')
 
 # Prediction Function
 def predict_weather(input_array):
-    input_array_scaled = scaler.transform(input_array)
-    result = model.predict(input_array_scaled)
-    prob_drizzle = round(model.predict_proba(input_array_scaled)[0][0], 2)
-    prob_rain = round(model.predict_proba(input_array_scaled)[0][1], 2)
-    prob_sun = round(model.predict_proba(input_array_scaled)[0][2], 2)
-    prob_snow = round(model.predict_proba(input_array_scaled)[0][3], 2)
-    prob_fog = round(model.predict_proba(input_array_scaled)[0][4], 2)
+    result = model.predict(input_array)
+
+    prob_drizzle = round(model.predict_proba(input_array)[0][0], 2)
+    prob_rain = round(model.predict_proba(input_array)[0][1], 2)
+    prob_sun = round(model.predict_proba(input_array)[0][2], 2)
+    prob_snow = round(model.predict_proba(input_array)[0][3], 2)
+    prob_fog = round(model.predict_proba(input_array)[0][4], 2)
 
     results = {
         "result": int(result[0]),
@@ -87,22 +77,19 @@ if lang=='telugu':
             # Prepare input array
             input_array = np.array([[precipitation, temp_max, temp_min, wind]])
             try:
-                prediction = predict_weather(input_array)
-
+                prediction = model.predict(input_array)
+                probabilities = model.predict_proba(input_array)
                 # Displaying Result
                 col1,col2=st.columns(2)
-
+                prob=[probabilities[0][0],probabilities[0][1],probabilities[0][2],probabilities[0][3],probabilities[0][4]]
                 weather_dict = {0: "చినుకులు", 1: "వర్షం", 2: "యెండ", 3: "మంచు", 4: "పొగమంచు"}
-                predicted_weather = weather_dict[prediction["result"]]
-                probabilities = prediction["probabilities"]
                 categories =  ["చినుకులు","వర్షం","యెండ", "మంచు", "పొగమంచు"]
-                values = list(probabilities.values())
-                col1.success(f"ఊహించిన వాతావరణం: {predicted_weather}")
+                col1.success(f"ఊహించిన వాతావరణం: {weather_dict[prediction[0]]}")
                 #display the probabilities in bar graph
                 #create a dataframe
                 df = pd.DataFrame({
                     'Category': categories,
-                    'Probability': values
+                    'Probability': prob
                 })
                 colors = ['#FF5733', '#33FF57', '#3357FF', '#F4D03F', '#8E44AD']
 
@@ -124,7 +111,7 @@ if lang=='telugu':
                 # Radar Chart Visualization
                 fig = go.Figure()
                 fig.add_trace(go.Scatterpolar(
-                    r=values,
+                    r=prob,
                     theta=categories,
                     fill='toself',
                     name='Probabilities'
@@ -194,18 +181,15 @@ else:
             # Prepare input array
             input_array = np.array([[precipitation, temp_max, temp_min, wind]])
             try:
-                prediction = predict_weather(input_array)
-
+                prediction = model.predict(input_array)
+                probabilities = model.predict_proba(input_array)
+                
+                weather_dict = {0: "Drizzle", 1: "Rain", 2: "Sun", 3: "Snow", 4: "Fog"}
+                values=[probabilities[0][0],probabilities[0][1],probabilities[0][2],probabilities[0][3],probabilities[0][4]]
                 # Displaying Result
                 col1,col2=st.columns(2)
-
-                weather_dict = {0: "Drizzle", 1: "Rain", 2: "Sun", 3: "Snow", 4: "Fog"}
-                predicted_weather = weather_dict[prediction["result"]]
-                probabilities = prediction["probabilities"]
                 categories =  ["Drizzle","Rain","Sun", "Snow", "Fog"]
-                values = list(probabilities.values())
-                col1.success(f"Predicted Weather: {predicted_weather}")
-                #create a dataframe
+                col1.success(f"Predicted Weather: {weather_dict[prediction[0]]}")
                 df = pd.DataFrame({
                     'Category': categories,
                     'Probability': values
@@ -226,8 +210,6 @@ else:
                 # Display the bar chart
                 col1.plotly_chart(fig)
                 # Radar Chart Visualization
-                categories = list(probabilities.keys())
-                values = list(probabilities.values())
                 fig = go.Figure()
                 fig.add_trace(go.Scatterpolar(
                     r=values,
