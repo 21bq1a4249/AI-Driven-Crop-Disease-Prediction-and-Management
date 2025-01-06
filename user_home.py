@@ -11,8 +11,8 @@ import plotly.graph_objects as go
 import plotly.express as px
 
 # Paths for model, scaler, and assets
-MODEL_PATH = './model/weather_model.pkl'
-SCALER_PATH = './model/scaler.pkl'
+MODEL_PATH = 'model/weather_model.pkl'
+SCALER_PATH = 'model/scaler.pkl'
 
 # Load Model and Scaler
 def load_pkl(fname):
