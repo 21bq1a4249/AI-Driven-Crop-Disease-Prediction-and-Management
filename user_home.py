@@ -38,7 +38,6 @@ def predict_weather(input_array):
 user_data = st.session_state.get('user', None)
 lang=user_data[5]
 name=user_data[1]
-st.write(name)
 if lang=='telugu':
     st.markdown(
     """
