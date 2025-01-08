@@ -4,7 +4,24 @@ from db_manager import register_user
 
 def register_page():
     # Center the registration form container using Streamlit form layout
-    with st.form(key="register_form"):
+    st.markdown(
+        """
+        <style>
+        /* Apply background image to the main content area */
+        .main {
+            background-image: url('https://static.vecteezy.com/system/resources/thumbnails/007/566/388/small_2x/doodle-line-art-rose-flower-bouquet-on-paper-background-free-vector.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 100vh;  /* Ensure the background covers the whole screen */
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+    col1,col2,col3=st.columns([1,20,1])
+    # Center the login form using Streamlit form layout
+    with col2.form(key="register_form"):
         # Title
         st.title("Registration Form (దయచేసి నమోదు చేయండి)")
         # Form Fields

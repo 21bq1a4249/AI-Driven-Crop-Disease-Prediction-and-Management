@@ -2,8 +2,24 @@ import streamlit as st
 from db_manager import validate_user
 
 def login_page():
+    st.markdown(
+        """
+        <style>
+        /* Apply background image to the main content area */
+        .main {
+            background-image: url('https://img.freepik.com/free-vector/watercolor-green-leaves-border-with-dots_65186-3397.jpg?semt=ais_hybrid');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 100vh;  /* Ensure the background covers the whole screen */
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
     # Center the login form using Streamlit form layout
-    with st.form(key="login_form"):
+    col1,col2,col3=st.columns([2,6,2])
+    with col2.form(key="login_form"):
         # Title
         st.title("Login Page (లాగిన్ చెయ్యండి)")
 
