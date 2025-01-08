@@ -1,11 +1,9 @@
 import streamlit as st
 import pandas as pd
 from streamlit_option_menu import option_menu
-import os
 import numpy as np
 import pandas as pd
 import streamlit as st
-from PIL import Image
 import joblib
 import plotly.graph_objects as go
 import plotly.express as px
