@@ -30,14 +30,3 @@ def home_page():
         """,
         unsafe_allow_html=True
     )
-
-    # Place the content inside a container for better presentation
-    st.markdown(
-        """
-        <div class="content-container">
-            <h1>Welcome to My Streamlit App!</h1>
-            <p>This is the home page with a centered layout and a beautiful background image.</p>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
