@@ -19,7 +19,4 @@ def home_page():
         </style>
         """,
         unsafe_allow_html=True
-    )
-    col1,col2,col3=st.columns([1,2,1])
-    col2.image("https://cdni.iconscout.com/illustration/premium/thumb/farmer-planting-seed-with-wheelbarrow-illustration-download-in-svg-png-gif-file-formats--agriculture-farm-farming-man-farmers-pack-illustrations-3491186.png?f=webp",use_column_width=True)
-    
+    )    
