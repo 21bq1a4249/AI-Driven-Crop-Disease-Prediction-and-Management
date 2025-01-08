@@ -34,10 +34,12 @@ def english_page():
     <style>
     /* Apply background image to the main content area */
     .main {
-        background-image: url("https://images.rawpixel.com/image_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDI0LTExL3Jhd3BpeGVsb2ZmaWNlNF93aGl0ZV9hbmRfc2lsdmVyX3NpbXBsZV9wbGFpbl9ncmFkaWVudF9iYWNrZ3JvdV8xMTgwZTY5Yy0yNjczLTQ2MTItYmFhNC1jMGFiMDFiODRmYzIuanBn.jpg");  
+        background-image: url("https://wmo.int/sites/default/files/styles/featured_image_x1_768x512/public/2023-12/thumbnails_5.jpg?h=d1cb525d&itok=aZ4qUGTc");  
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
+        background-color: rgba(255, 255, 255, 0.5); /* Add a semi-transparent overlay */
+        background-blend-mode: overlay; /* Blend the image with the overlay */
     }
     </style>
     """,
@@ -71,7 +73,14 @@ def english_page():
                 col1,col2=st.columns([10,5])
                 weather_dict = {0: "Drizzle", 1: "Rain", 2: "Sun", 3: "Snow", 4: "Fog"}
                 predicted_weather = weather_dict[prediction["result"]]
-                col1.success(f"Predicted Weather: {predicted_weather}")
+                col1.markdown(
+                    f"""
+                    <div style="text-align: center; padding: 5px; background-color: #42f55d; border-radius: 1px; border: 2px solid black; margin-bottom: 2px;">
+                        <p style="color: black; font-size: 20px;"><b>Predicted Weather: {predicted_weather}</b></p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
                 # Extract probabilities
                 categories = ["Drizzle", "Fog", "Rain", "Snow", "Sun"]
                 values = [

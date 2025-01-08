@@ -7,11 +7,13 @@ def login_page():
         <style>
         /* Apply background image to the main content area */
         .main {
-            background-image: url('https://img.freepik.com/free-vector/watercolor-green-leaves-border-with-dots_65186-3397.jpg?semt=ais_hybrid');
+            background-image: url('https://www.vaniperen.com/wp-content/uploads/2021/12/Plants-for-Plants-header-young-plant-fruit-growing-1440x710.jpg');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             min-height: 100vh;  /* Ensure the background covers the whole screen */
+            background-color: rgba(255, 255, 255, 0.6); /* Add a semi-transparent overlay */
+            background-blend-mode: overlay; /* Blend the image with the overlay */
         }
         </style>
         """,

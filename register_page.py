@@ -9,11 +9,13 @@ def register_page():
         <style>
         /* Apply background image to the main content area */
         .main {
-            background-image: url('https://static.vecteezy.com/system/resources/thumbnails/007/566/388/small_2x/doodle-line-art-rose-flower-bouquet-on-paper-background-free-vector.jpg');
+            background-image: url('https://help.gardeningexpress.co.uk/wp-content/uploads/2023/04/Untitled-design-1.png');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             min-height: 100vh;  /* Ensure the background covers the whole screen */
+            background-color: rgba(255, 255, 255, 0.6); /* Add a semi-transparent overlay */
+            background-blend-mode: overlay; /* Blend the image with the overlay */
         }
         </style>
         """,

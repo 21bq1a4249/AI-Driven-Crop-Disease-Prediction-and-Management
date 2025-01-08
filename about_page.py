@@ -7,11 +7,13 @@ def about_us_page():
         <style>
         /* Apply background image to the main content area */
         .main {
-            background-image: url('https://img.freepik.com/free-vector/hand-painted-watercolor-floral-background_79603-1868.jpg');
+            background-image: url('https://static.vecteezy.com/system/resources/thumbnails/029/109/949/small_2x/wild-pristine-evergreen-forest-ai-generated-photo.jpg');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             min-height: 100vh;  /* Ensure the background covers the whole screen */
+            background-color: rgba(255, 255, 255, 0.6); /* Add a semi-transparent overlay */
+            background-blend-mode: overlay; /* Blend the image with the overlay */
         }
         </style>
         """,

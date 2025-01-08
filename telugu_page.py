@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from streamlit_option_menu import option_menu
+import os
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -33,10 +34,12 @@ def telugu_page():
     <style>
     /* Apply background image to the main content area */
     .main {
-        background-image: url("https://media.istockphoto.com/id/690022274/photo/defocused-lights-background.jpg?s=612x612&w=0&k=20&c=Hq8w3rrMmXfWJNhKC9zFQr_owsk9D-cIWwLB4pJbsmk=");  
+        background-image: url("https://wmo.int/sites/default/files/styles/featured_image_x1_768x512/public/2023-12/thumbnails_5.jpg?h=d1cb525d&itok=aZ4qUGTc");  
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
+        background-color: rgba(255, 255, 255, 0.5); /* Add a semi-transparent overlay */
+        background-blend-mode: overlay; /* Blend the image with the overlay */
     }
     </style>
     """,
@@ -70,7 +73,15 @@ def telugu_page():
                 col1,col2=st.columns([10,5])
                 weather_dict = {0: "చినుకులు", 1: "వర్షం", 2: "యెండ", 3: "మంచు", 4: "పొగమంచు"}
                 predicted_weather = weather_dict[prediction["result"]]
-                col1.success(f"ఊహించిన వాతావరణం: {predicted_weather}")
+                col1.markdown(
+                    f"""
+                    <div style="text-align: center; padding: 5px; background-color: #42f55d; border-radius: 1px; border: 2px solid black; margin-bottom: 2px;">
+                        <p style="color: black; font-size: 20px;"><b>ఊహించిన వాతావరణం: {predicted_weather}</b></p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
                 # Extract probabilities
                 categories =  ["చినుకులు","వర్షం","యెండ", "మంచు", "పొగమంచు"]
                 values = [
