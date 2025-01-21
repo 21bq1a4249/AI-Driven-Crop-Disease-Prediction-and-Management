@@ -82,7 +82,7 @@ def english_page():
                     unsafe_allow_html=True
                 )
                 # Extract probabilities
-                categories = ["Drizzle", "Fog", "Rain", "Snow", "Sun"]
+                categories = ["Drizzle", "Rain", "Sun", "Snow", "Fog"]
                 values = [
                     prediction["drizzle"],
                     prediction["fog"],
