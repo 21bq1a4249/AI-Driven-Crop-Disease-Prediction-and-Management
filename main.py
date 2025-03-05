@@ -9,7 +9,7 @@ from about_page import about_us_page
 init_db()
 
 # Streamlit Page Config
-st.set_page_config(page_title = 'Smart Irrigation', layout='wide', page_icon="🌱")
+st.set_page_config(page_title = 'Smart Irrigation', layout='wide', page_icon="🍂")
 
 
 # Session State Initialization

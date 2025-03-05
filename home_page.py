@@ -2,7 +2,7 @@ import streamlit as st
 
 def home_page():
     
-    # Center the content using CSS
+    # Center the image
     st.markdown(
         """
         <style>
@@ -14,17 +14,7 @@ def home_page():
             background-repeat: no-repeat;
             background-color: rgba(255, 255, 255, 0.3); /* Add a semi-transparent overlay */
             background-blend-mode: overlay; /* Blend the image with the overlay */
-            height: 100vh; /* Make the background cover the entire viewport height */
-            display: flex;
-            justify-content: center; /* Center content horizontally */
-            align-items: center; /* Center content vertically */
-            text-align: center;
-        }
-        /* Additional styles for the content container */
-        .content-container {
-            background-color: rgba(255, 255, 255, 0.7); /* Semi-transparent background for text */
-            padding: 20px;
-            border-radius: 10px;
+
         }
         </style>
         """,
