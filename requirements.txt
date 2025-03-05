@@ -10,3 +10,4 @@ torchvision
 plotly==5.18.0
 matplotlib==3.10.0
 seaborn==0.12.2
+gdown
