@@ -1,7 +1,7 @@
 # AI-Driven Crop Disease Prediction and Management
 
 ## 🌱 Project Overview
-This project leverages Artificial Intelligence (AI) to help farmers predict and manage crop diseases efficiently. The system supports the Telugu language, visualizes agricultural data, predicts rainfall patterns, and provides disease-related insights. Additionally, it offers recommendations for fertilizers and supplements to optimize crop health.
+This project leverages Artificial Intelligence (AI) to help farmers predict and manage crop diseases efficiently. The system supports the Telugu language, visualizes agricultural data, predicts rainfall patterns and provides disease-related insights. Additionally, it offers recommendations for fertilizers and supplements to optimize crop health.
 
 ## 🔑 Features
 - **Telugu Language Support** 🌐
@@ -32,21 +32,9 @@ This project leverages Artificial Intelligence (AI) to help farmers predict and 
 #### 🔬 Data Visualization
 1. View interactive graphs and insights about crop health, diseases, and weather.
 
-## 📸 Screenshots
-🚀 Add screenshots of the application in action here!
-
 ## 🤝 Contributing
 We welcome contributions! To contribute:
 1. Fork the repository
 2. Create a new branch
 3. Commit changes
 4. Push to your branch and create a Pull Request
-
-## 📜 License
-This project is licensed under the MIT License.
-
-## 📬 Contact
-For queries, reach out to:
-- **Your Name:** [Your Email]
-- **GitHub:** [Your Profile]
-
