@@ -6,25 +6,55 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 import joblib
+import torch
+from PIL import Image
+import CNN
 import plotly.graph_objects as go
 import plotly.express as px
+import torchvision.transforms.functional as TF
+disease_info = pd.read_csv('disease_info.csv',encoding='cp1252')
+supplement_info = pd.read_csv('supplement_info.csv',encoding='cp1252')
+import gdown
+import torch
+import torchvision.transforms.functional as TF
+import numpy as np
+from PIL import Image
+import CNN  # Ensure CNN.py defines the correct model architecture
+
+# Step 1: Download the model from Google Drive
+file_id = "1pxdrNiOivql6s0ArWE18AQ5HiXiSUrwj"
+output = "plant_disease_model_1_latest.pt"
+
+url = f"https://drive.google.com/uc?id={file_id}"
+gdown.download(url, output, quiet=False)
+
+# Step 2: Load the model
+model = CNN.CNN(39)  # Ensure CNN.CNN is defined in your CNN.py file
+model.load_state_dict(torch.load(output, map_location=torch.device('cpu')))
+model.eval()
+
+def prediction(image_path):
+    image = Image.open(image_path)
+    image = image.resize((224, 224))
+    input_data = TF.to_tensor(image)
+    input_data = input_data.view((-1, 3, 224, 224))
+    output = model(input_data)
+    output = output.detach().numpy()
+    index = np.argmax(output)
+    return index
 def telugu_page():
     user_data = st.session_state.get('user', None)
     lang=user_data[5]
     name=user_data[1]
 
-    # Paths for model, scaler, and assets
-    MODEL_PATH = 'weather_model.pkl'
-    SCALER_PATH = 'scaler.pkl'
-    model = joblib.load('weather_model.pkl')
-    # Load the scaler
-    scaler = joblib.load('scaler.pkl')
+    loaded_model = joblib.load('gradient_boosting_model.pkl')
 
 
     # Prediction Function
     def predict_weather(input_array):
-        prediction_proba = model.predict_proba(input_array)
-        weather_labels = scaler.inverse_transform(model.classes_)
+        real_time_input = [[input_array[0][0], input_array[0][1], input_array[0][2], input_array[0][3]]]
+        prediction_proba = loaded_model.predict_proba(real_time_input)
+        weather_labels = ["drizzle", "fog", "rain", "snow", "sun"]
         output = dict(zip(weather_labels, prediction_proba[0]))
         output = {k: v for k, v in output.items()}
         output["result"] = np.argmax(prediction_proba)
@@ -129,11 +159,91 @@ def telugu_page():
                 col2.plotly_chart(fig_radar,use_container_width=True)
             except Exception as e:
                 pass
+    def diseases():
+        st.markdown(
+            """
+            <style>
+            /* Apply background image to the main content area */
+            .main {
+                background-image: url("https://png.pngtree.com/thumb_back/fh260/background/20230610/pngtree-close-up-shot-of-a-plant-with-some-brown-spots-on-image_2957649.jpg");  
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+                background-color: rgba(255, 255, 255, 0.5); /* Add a semi-transparent overlay */
+                background-blend-mode: overlay; /* Blend the image with the overlay */
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+            )
+        # File uploader
+        col1, col2, col3 = st.columns([1, 3, 1])
+        image = col2.file_uploader("మొక్క యొక్క చిత్రాన్ని అప్‌లోడ్ చేయండి", type=['jpg', 'jpeg', 'png'])
+        if image:
+            col1, col2, col3 = st.columns([5, 6, 1])
+            col2.image(image, caption='అప్‌లోడ్ చేసిన చిత్రం',width=250)
+            try:
+                # Perform prediction
+                pred = prediction(image)
+
+                # Fetch details based on prediction
+                title = disease_info['disease_name'][pred]
+                description = disease_info['description'][pred]
+                prevent = disease_info['Possible Steps'][pred]
+                image_url = disease_info['image_url'][pred]
+                supplement_name = supplement_info['supplement name'][pred]
+                supplement_image_url = supplement_info['supplement image'][pred]
+                supplement_buy_link = supplement_info['buy link'][pred]
+
+                # Display results
+                col1, col2, col3 = st.columns([4, 6, 1])
+                col2.markdown(f"<h2 style='color:red;'>{title}</h2>", unsafe_allow_html=True)
+                col1,col2=st.columns([5,5])
+                col1.markdown(
+                    f"""
+                    <div style="text-align: justify; padding: 10px; background-color: #d3e876; border-radius: 20px; border: 1.5px solid black; margin-bottom: 20px;">
+                        <h2 style="color: #111df7; font-size: 20px;"><b>Disease Description:</b></h2>
+                        <p style="color: black; font-size: 15px;"><b>{description}</b></p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+                col2.markdown(
+                    f"""
+                    <div style="text-align: justify; padding: 10px; background-color: #ffa1ef; border-radius: 20px; border: 1.5px solid black; margin-bottom: 20px;">
+                        <h2 style="color: #111df7; font-size: 20px;"><b>Prevntion Steps:</b></h2>
+                        <p style="color: black; font-size: 15px;"><b>{prevent}</b></p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+                st.write(f"")
+                col1, col2, col3 = st.columns([3, 4, 3])
+                col2.markdown(
+                    f"""
+                    <div style="text-align: center; padding: 8px; background-color: #ffd5a1; border-radius: 30px; border: 1.5px solid black; margin-bottom: 10px;">
+                        <h2 style="color: #111df7; font-size: 20px;"><b>Recommended Supplement:</b> {supplement_name}</h2>
+                        <div style="text-align: center; margin-top: 10px;">
+                            <img src="{supplement_image_url}" alt="Supplement Image" style="width: 300px; height: auto; border-radius: 15px; border: 1px solid black;">
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <a href="{supplement_buy_link}" target="_blank" style="text-decoration: none;">
+                                <button style="background-color: red; color: white; font-size: 16px; padding: 10px 20px; border: none; border-radius: 10px; cursor: pointer;">
+                                    Buy Supplement Here
+                                </button>
+                            </a>
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+            except:
+                st.error('Invalid Image') 
     # Navigation menu for user dashboard
     selected_tab = option_menu(
         menu_title=None,
-        options=["వర్షపాతం అంచనా",'లాగ్అవుట్'],
-        icons=['cloud-drizzle-fill','unlock-fill'], menu_icon="cast", default_index=0,
+        options=["వర్షపాతం అంచనా",'పంట వ్యాధులు','లాగ్అవుట్'],
+        icons=['cloud-drizzle-fill','prescription2','unlock-fill'], menu_icon="cast", default_index=0,
         orientation="horizontal",
     styles={
     "nav-link-selected": {"background-color": "#62f088", "color": "black", "border-radius": "5px"},
@@ -141,6 +251,8 @@ def telugu_page():
     )
     if selected_tab == "వర్షపాతం అంచనా":
         user_profile()
+    elif selected_tab == "పంట వ్యాధులు":
+        diseases()
     elif selected_tab=='లాగ్అవుట్':
         # Logout functionality
         st.cache()
