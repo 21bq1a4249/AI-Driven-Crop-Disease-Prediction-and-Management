@@ -14,10 +14,25 @@ import os
 import torchvision.transforms.functional as TF
 disease_info = pd.read_csv('disease_info.csv' , encoding='cp1252')
 supplement_info = pd.read_csv('supplement_info.csv',encoding='cp1252')
+import gdown
+import torch
+import torchvision.transforms.functional as TF
+import numpy as np
+from PIL import Image
+import CNN  # Ensure CNN.py defines the correct model architecture
 
-model = CNN.CNN(39)    
-model.load_state_dict(torch.load("plant_disease_model_1_latest.pt"))
+# Step 1: Download the model from Google Drive
+file_id = "1pxdrNiOivql6s0ArWE18AQ5HiXiSUrwj"
+output = "plant_disease_model_1_latest.pt"
+
+url = f"https://drive.google.com/uc?id={file_id}"
+gdown.download(url, output, quiet=False)
+
+# Step 2: Load the model
+model = CNN.CNN(39)  # Ensure CNN.CNN is defined in your CNN.py file
+model.load_state_dict(torch.load(output, map_location=torch.device('cpu')))
 model.eval()
+
 
 def prediction(image_path):
     image = Image.open(image_path)
