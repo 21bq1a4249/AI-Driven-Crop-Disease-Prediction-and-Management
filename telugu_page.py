@@ -28,13 +28,25 @@ from PIL import Image
 import CNN  # Ensure CNN.py defines the correct model architecture
 from PIL import Image
 import requests
+
+YOUTUBE_API_KEY = "AIzaSyDYEeSTrT7pPpVzpmaJ491gxogVxfWwpvM"
 file_id = "1pxdrNiOivql6s0ArWE18AQ5HiXiSUrwj"
 output = "plant_disease_model_1_latest.pt"
 
 url = f"https://drive.google.com/uc?id={file_id}"
 gdown.download(url, output, quiet=False)
 
-YOUTUBE_API_KEY = "AIzaSyDYEeSTrT7pPpVzpmaJ491gxogVxfWwpvM"
+file_id1 = "1Bn79mgUiHyIbROo3Y5cgovpZ-3VHk9j9"
+output1 = "crop_weed_detection.weights"
+
+url1 = f"https://drive.google.com/uc?id={file_id1}"
+gdown.download(url1, output1, quiet=False)
+
+file_id2 = "1O5eTn52knVX4YvE1Uwu6Ju9LMbnqkvzN"
+output2 = "pests_detection_model.h5"
+
+url2 = f"https://drive.google.com/uc?id={file_id2}"
+gdown.download(url2, output2, quiet=False)
 from googletrans import Translator
 def translate_to_telugu(text):
     translator = Translator()

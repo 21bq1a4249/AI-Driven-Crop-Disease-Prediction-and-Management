@@ -35,6 +35,20 @@ output = "plant_disease_model_1_latest.pt"
 url = f"https://drive.google.com/uc?id={file_id}"
 gdown.download(url, output, quiet=False)
 
+file_id1 = "1Bn79mgUiHyIbROo3Y5cgovpZ-3VHk9j9"
+output1 = "crop_weed_detection.weights"
+
+url1 = f"https://drive.google.com/uc?id={file_id1}"
+gdown.download(url1, output1, quiet=False)
+
+file_id2 = "1O5eTn52knVX4YvE1Uwu6Ju9LMbnqkvzN"
+output2 = "pests_detection_model.h5"
+
+url2 = f"https://drive.google.com/uc?id={file_id2}"
+gdown.download(url2, output2, quiet=False)
+
+
+
 def fetch_agriculture_news():
     API_KEY = "933be40f4f7f42c5bdc3d127e5c2cc58"  # Replace with your NewsAPI key
     url = "https://newsapi.org/v2/everything"
