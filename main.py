@@ -5,6 +5,7 @@ from db_manager import init_db
 from streamlit_option_menu import option_menu
 from home_page import home_page
 from about_page import about_us_page
+from forgot_password_page import forgot_password_page
 # Initialize the database
 init_db()
 
@@ -43,7 +44,7 @@ if st.session_state["page"] == "Home":
 
     selected_page = option_menu(
         menu_title=None,
-        options=["Home (హోమ్)", "Login (లాగిన్ అవ్వండి)", "Register (నమోదు)",'Contact (సంప్రదించండి)'],
+        options=["Home (హోమ్)", "Login (లాగిన్)", "Register (నమోదు)",'Forgot Password(పాస్‌వర్డ్)'],
         icons=["house", "box-arrow-in-right", "person-plus",'file-earmark-fill'],
         menu_icon="cast",
         default_index=0,
@@ -63,12 +64,14 @@ if st.session_state["page"] == "Home":
     # Render the selected page
     if selected_page == "Home (హోమ్)":
         home_page()
-    elif selected_page == "Login (లాగిన్ అవ్వండి)":
+    elif selected_page == "Login (లాగిన్)":
         login_page()
     elif selected_page == "Register (నమోదు)":
         register_page()
     elif selected_page == 'Contact (సంప్రదించండి)':
         about_us_page()
+    elif selected_page=='Forgot Password(పాస్‌వర్డ్)':
+        forgot_password_page()
 
 elif st.session_state["page"] == "user_home":
     # Redirect to the user dashboard after login
