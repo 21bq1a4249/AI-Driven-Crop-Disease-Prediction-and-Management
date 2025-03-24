@@ -1,18 +1,24 @@
 import streamlit as st
 import pandas as pd
 from streamlit_option_menu import option_menu
-import os
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 import streamlit as st
 import joblib
-import torch
-from PIL import Image
-import CNN
 import plotly.graph_objects as go
 import plotly.express as px
+import CNN
+import torch
+from PIL import Image
+from ultralytics import YOLO
+import cv2
+import numpy as np
+import time
+from PIL import Image
+import os
 import torchvision.transforms.functional as TF
-disease_info = pd.read_csv('disease_info.csv',encoding='cp1252')
+disease_info = pd.read_csv('disease_info.csv' , encoding='cp1252')
 supplement_info = pd.read_csv('supplement_info.csv',encoding='cp1252')
 import gdown
 import torch
@@ -20,18 +26,69 @@ import torchvision.transforms.functional as TF
 import numpy as np
 from PIL import Image
 import CNN  # Ensure CNN.py defines the correct model architecture
-
-# Step 1: Download the model from Google Drive
+from PIL import Image
+import requests
 file_id = "1pxdrNiOivql6s0ArWE18AQ5HiXiSUrwj"
 output = "plant_disease_model_1_latest.pt"
 
 url = f"https://drive.google.com/uc?id={file_id}"
 gdown.download(url, output, quiet=False)
 
+YOUTUBE_API_KEY = "AIzaSyDYEeSTrT7pPpVzpmaJ491gxogVxfWwpvM"
+from googletrans import Translator
+def translate_to_telugu(text):
+    translator = Translator()
+    translated = translator.translate(text, src="en", dest="te")
+    return translated.text
+
+def fetch_youtube_videos(query, max_results=6):
+    url = f"https://www.googleapis.com/youtube/v3/search"
+    params = {
+        'part': 'snippet',
+        'q': query,
+        'type': 'video',
+        'key': YOUTUBE_API_KEY,
+        'maxResults': max_results
+    }
+    response = requests.get(url, params=params)
+    videos = []
+    if response.status_code == 200:
+        data = response.json()
+        for item in data['items']:
+            video_id = item['id']['videoId']
+            video_title = item['snippet']['title']
+            videos.append({'video_id': video_id, 'title': video_title})
+    return videos
+# Step 1: Download the model from Google Drive
+output = "plant_disease_model_1_latest.pt"
+
 # Step 2: Load the model
 model = CNN.CNN(39)  # Ensure CNN.CNN is defined in your CNN.py file
 model.load_state_dict(torch.load(output, map_location=torch.device('cpu')))
 model.eval()
+def info_box(price_per_kg):
+    def format_number_indian(num):
+        num_str = f"{num:,}"
+        parts = num_str.split(",")
+        if len(parts) > 2:
+            return parts[0] + "," + ",".join(parts[1:]).replace(",", "_", 1).replace("_", ",")
+        return num_str
+    
+    return f"""
+        <div style="
+            background-color: rgba(123, 216, 237, 0.6);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 18px;
+            color: black;
+            font-weight: bold;
+            width: 50%;
+            margin: 0 auto;
+        ">
+            <span style='color: red;'>ప్రస్తుత ధర:</span> <span style='color: black;'>{format_number_indian(price_per_kg)}INR కిలోకు </span><br>
+        </div>
+    """
 
 def prediction(image_path):
     image = Image.open(image_path)
@@ -75,6 +132,7 @@ def telugu_page():
     """,
     unsafe_allow_html=True
     )
+    name=translate_to_telugu(name)
     st.markdown(
     f"""
     <h1 style="text-align: center; color: black;">
@@ -84,81 +142,178 @@ def telugu_page():
     unsafe_allow_html=True
     )
     def user_profile():
+        st.markdown(
+        """
+        <style>
+        /* Apply background image to the main content area */
+        .main {
+            background-image: url("https://media.istockphoto.com/id/1384550157/photo/rising-wheat-prices-in-europe-due-to-the-conflict-between-russia-and-ukraine-flour-and-wheat.jpg?s=612x612&w=0&k=20&c=gobiFbQgqkA4FLK3BeSKfaMkangmtjIANitMFp0yxvg=");  
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-color: rgba(255, 255, 255, 0.5); /* Add a semi-transparent overlay */
+            background-blend-mode: overlay; /* Blend the image with the overlay */
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+        )
         # Input Section
-        with st.form(key="weather_form"):
-            st.subheader("వాతావరణ పారామితులను నమోదు చేయండి")
-            col1, col2 = st.columns(2)
-            precipitation = col1.number_input("అవపాతం (mm)", min_value=0.0, max_value=500.0, value=10.0, step=0.1)
-            temp_max = col2.number_input("గరిష్ట ఉష్ణోగ్రత (°C)", min_value=-50.0, max_value=50.0, value=20.0, step=0.1)
-            temp_min = col1.number_input("కనిష్ట ఉష్ణోగ్రత (°C)", min_value=-50.0, max_value=50.0, value=10.0, step=0.1)
-            wind = col2.number_input("గాలి వేగం (km/h)", min_value=0.0, max_value=150.0, value=5.0, step=0.1)
-            col1,col2,col3=st.columns([12,10,10])
-            submitted = col2.form_submit_button("వాతావరణాన్ని అంచనా వేయండి")
-        # Predict Button
-        if submitted:
-            # Prepare input array
-            input_array = np.array([[precipitation, temp_max, temp_min, wind]])
-            try:
-                prediction = predict_weather(input_array)
-                col1,col2=st.columns([10,5])
-                weather_dict = {0: "చినుకులు", 1: "వర్షం", 2: "యెండ", 3: "మంచు", 4: "పొగమంచు"}
-                predicted_weather = weather_dict[prediction["result"]]
-                col1.markdown(
-                    f"""
-                    <div style="text-align: center; padding: 5px; background-color: #42f55d; border-radius: 1px; border: 2px solid black; margin-bottom: 2px;">
-                        <p style="color: black; font-size: 20px;"><b>ఊహించిన వాతావరణం: {predicted_weather}</b></p>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
 
-                # Extract probabilities
-                categories =  ["చినుకులు","వర్షం","యెండ", "మంచు", "పొగమంచు"]
-                values = [
-                    prediction["drizzle"],
-                    prediction["fog"],
-                    prediction["rain"],
-                    prediction["snow"],
-                    prediction["sun"]
-                ]
+        with st.form(key='my_form'):
+            col1,col2,col3=st.columns([2,3,2])
+            crop_mapping = {
+                "అరెకానట్ (పూవమ్రము)": "Arecanut",
+                "తుర్ దాల్": "Arhar/Tur",
+                "బాజ్రా": "Bajra",
+                "అరటిపండు": "Banana",
+                "బార్లీ": "Barley",
+                "బీన్": "Bean",
+                "నల్ల మిరియాలు": "Black pepper",
+                "మినుములు": "Blackgram",
+                "సొరకాయ": "Bottle Gourd",
+                "వంకాయ": "Brinjal",
+                "క్యాబేజీ": "Cabbage",
+                "యాలకులు": "Cardamom",
+                "కారట్": "Carrot",
+                "జీడిపప్పు": "Cashewnut",
+                "ఆముదం గింజ": "Castor seed",
+                "కాలీఫ్లవర్": "Cauliflower",
+                "సిట్రస్ ఫలాలు": "Citrus Fruit",
+                "కొబ్బరి": "Coconut",
+                "కాఫీ": "Coffee",
+                "ధనియాలు": "Coriander",
+                "పత్తి": "Cotton",
+                "అలసందలు": "Cowpea",
+                "మునగకాయ": "Drum Stick",
+                "ఎండుమిరపకాయ": "Dry chillies",
+                "ఎండు అల్లం": "Dry ginger",
+                "వెల్లులి": "Garlic",
+                "అల్లం": "Ginger",
+                "శనగలు": "Gram",
+                "ద్రాక్ష": "Grapes",
+                "వేరుశెనగ": "Groundnut",
+                "గ్వార్ గింజ": "Guar seed",
+                "కులతు (గుడికంది)": "Horse-gram",
+                "పనసపండు": "Jack Fruit",
+                "జొన్నలు": "Jowar",
+                "జ్యూట్": "Jute",
+                "ఖేసారి": "Khesari",
+                "కొర్రలు": "Korra",
+                "నిమ్మకాయ": "Lemon",
+                "మసూర్ దాల్": "Lentil",
+                "ఆలసంద": "Linseed",
+                "మొక్కజొన్న": "Maize",
+                "మామిడి": "Mango",
+                "మసూర్": "Masoor",
+                "మెస్టా": "Mesta",
+                "పెసరపప్పు": "Moong(Green Gram)",
+                "మోత్": "Moth",
+                "నైజర్ గింజ": "Niger seed",
+                "మొత్తం నూనె గింజలు": "Oilseeds total",
+                "ఉల్లిపాయ": "Onion",
+                "సంతరా": "Orange",
+                "ఇతర రబీ పప్పుధాన్యాలు": "Other Rabi pulses",
+                "ఇతర ధాన్యాలు & చిన్న ధాన్యాలు": "Other Cereals & Millets",
+                "ఇతర సిట్రస్ పండ్లు": "Other Citrus Fruit",
+                "ఇతర ఎండు పండ్లు": "Other Dry Fruit",
+                "ఇతర తాజా పండ్లు": "Other Fresh Fruits",
+                "ఇతర ఖరీఫ్ పప్పుధాన్యాలు": "Other Kharif pulses",
+                "ఇతర కూరగాయలు": "Other Vegetables",
+                "బొప్పాయి": "Papaya",
+                "పీచ్": "Peach",
+                "పియర్": "Pear",
+                "పెసలు & బీన్ (పప్పుధాన్యాలు)": "Peas & beans (Pulses)",
+                "అనాసపండు": "Pineapple",
+                "ప్లమ్": "Plums",
+                "పామే పండు": "Pome Fruit",
+                "దాడిమం": "Pome Granet",
+                "బంగాళదుంప": "Potato",
+                "మొత్తం పప్పుధాన్యాలు": "Pulses total",
+                "గుమ్మడికాయ": "Pump Kin",
+                "రాగి": "Ragi",
+                "రాజ్మా": "Rajmash Kholar",
+                "ఆవాలు & మెంతి": "Rapeseed &Mustard",
+                "ముల్లంగి": "Redish",
+                "బీరకాయ": "Ribed Guard",
+                "బియ్యం": "Rice",
+                "రబ్బరు": "Rubber",
+                "సూర్యఫూల్ గింజ": "Safflower",
+                "సామై": "Samai",
+                "సన్నంప్": "Sannhamp",
+                "సపోటా": "Sapota",
+                "నువ్వులు": "Sesamum",
+                "చిన్న ధాన్యాలు": "Small millets",
+                "సోయాబీన్": "Soyabean",
+                "చక్కరకబ్బు": "Sugarcane",
+                "సూర్యకాంతి గింజ": "Sunflower",
+                "తీపి బంగాళదుంప": "Sweet potato",
+                "టపియోకా": "Tapioca",
+                "టీ": "Tea",
+                "తంబాకు": "Tobacco",
+                "టమోటా": "Tomato",
+                "మొత్తం ఆహార ధాన్యాలు": "Total foodgrain",
+                "పసుపు": "Turmeric",
+                "టర్నిప్": "Turnip",
+                "ఉరద్": "Urad",
+                "వరగు": "Varagu",
+                "పుచ్చకాయ": "Water Melon",
+                "గోధుమ": "Wheat",
+                "యామ్": "Yam",
+                "ఇతర నూనె గింజలు": "other oilseeds",
+                "ఇతర మిశ్రమ పప్పుధాన్యాలు": "other misc. pulses",
+                "ఇతర నారలు": "other fibres",
+                "ఇతర ధాన్యాలు": "other cereals",
+                "ఇతర కూరగాయలు": "other vegetables",
+                "మొత్తం పప్పుధాన్యాలు": "Total Pulses",
+                "మొత్తం ఆహార ధాన్యాలు": "Total foodgrain",
+                "మొత్తం పండ్లు": "Total fruits",
+                "మొత్తం కూరగాయలు": "Total vegetables"
+            }
 
-                # Create a dataframe
-                df = pd.DataFrame({
-                    'Category': categories,
-                    'Probability': values
-                })
+            # Telugu crop list
+            telugu_crops = list(crop_mapping.keys())
 
-                colors = ['#FF5733', '#33FF57', '#3357FF', '#F4D03F', '#8E44AD']
-                # Create a Plotly bar chart
-                fig = px.bar(
-                    df,
-                    x='Category',
-                    y='Probability',
-                    color='Category',
-                    color_discrete_sequence=colors,
-                    title="వాతావరణ పరిస్థితుల భావితవ్యాలు (Probabilities)",
-                    labels={'Category': 'వాతావరణం', 'Probability': 'ప్రామాణికత'}
-                )
-                # Display the bar chart
-                col1.plotly_chart(fig,use_container_width=True)
+            # Select crop in Telugu
+            selected_telugu_crop = col2.selectbox("పంటను ఎంచుకోండి", telugu_crops)
+            crop_name = crop_mapping[selected_telugu_crop]
+            # Make prediction
+            col1,col2,col3=st.columns([2.3,2,1])
+            if col2.form_submit_button('అంచనా వేయండి',type='primary') and crop_name:
+                pri=pd.read_csv('crop_prices.csv')
+                price=pri[pri['Crop Name']==crop_name]['Price 2025 (INR per kg)'].values[0]
+                st.markdown(info_box(price), unsafe_allow_html=True)
+                #show previous price vs predicted price
+                pri=pd.read_csv('crop_prices.csv')
+                st.write(" ")
+                st.write(" ")
+                # Get price
+                #show plot for next 5 years
+                price_2020 = pri[pri['Crop Name'] == crop_name]['Price 2020'].values[0]
+                price_2025 = pri[pri['Crop Name'] == crop_name]['Price 2025 (INR per kg)'].values[0]
 
-                # Radar Chart Visualization
-                fig_radar = go.Figure()
-                fig_radar.add_trace(go.Scatterpolar(
-                    r=values,
-                    theta=categories,
-                    fill='toself',
-                    name='Probabilities'
-                ))
-                fig_radar.update_layout(
-                    polar=dict(radialaxis=dict(visible=True, range=[0, 1])),
-                    showlegend=False,
-                )
+                # Generate price trend from 2020 to 2025
+                years_past = np.arange(2020, 2026)
+                prices_past = np.   linspace(price_2020, price_2025, num=len(years_past)) + np.random.uniform(-1, 1, size=len(years_past))
 
-                # Display the radar chart
-                col2.plotly_chart(fig_radar,use_container_width=True)
-            except Exception as e:
-                pass
+                # Forecast next 5 years (2026-2030) using a simple linear growth model
+                slope = (price_2025 - price_2020) / (2025 - 2020)
+                years_future = np.arange(2026, 2031)
+                prices_future = [price_2025 + slope * (year - 2025) + np.random.uniform(-1, 1) for year in years_future]
+
+                # Combine past and forecasted data
+                all_years = np.concatenate((years_past, years_future))
+                all_prices = np.concatenate((prices_past, prices_future))
+
+                # Plot the price trend with forecast
+                fig, ax = plt.subplots()
+                ax.plot(all_years, all_prices, marker='o', linestyle='-', color='blue', label=f'Price Trend for {crop_name}')
+                ax.axvline(x=2025, color='red', linestyle='--', label='Forecast Start')
+                ax.set_xlabel('సంవత్సరం')
+                ax.set_ylabel('Price (INR per kg)')
+                ax.legend()
+                col1,col2,col3=st.columns([1,3,1])
+                col2.pyplot(fig)
     def diseases():
         st.markdown(
             """
@@ -197,13 +352,13 @@ def telugu_page():
 
                 # Display results
                 col1, col2, col3 = st.columns([4, 6, 1])
-                col2.markdown(f"<h2 style='color:red;'>{title}</h2>", unsafe_allow_html=True)
+                col2.markdown(f"<h2 style='color:red;'>{translate_to_telugu(title)}</h2>", unsafe_allow_html=True)
                 col1,col2=st.columns([5,5])
                 col1.markdown(
                     f"""
                     <div style="text-align: justify; padding: 10px; background-color: #d3e876; border-radius: 20px; border: 1.5px solid black; margin-bottom: 20px;">
-                        <h2 style="color: #111df7; font-size: 20px;"><b>Disease Description:</b></h2>
-                        <p style="color: black; font-size: 15px;"><b>{description}</b></p>
+                        <h2 style="color: #111df7; font-size: 20px;"><b>వ్యాధి వివరణ:</b></h2>
+                        <p style="color: black; font-size: 15px;"><b>{translate_to_telugu(description)}</b></p>
                     </div>
                     """,
                     unsafe_allow_html=True
@@ -211,8 +366,8 @@ def telugu_page():
                 col2.markdown(
                     f"""
                     <div style="text-align: justify; padding: 10px; background-color: #ffa1ef; border-radius: 20px; border: 1.5px solid black; margin-bottom: 20px;">
-                        <h2 style="color: #111df7; font-size: 20px;"><b>Prevntion Steps:</b></h2>
-                        <p style="color: black; font-size: 15px;"><b>{prevent}</b></p>
+                        <h2 style="color: #111df7; font-size: 20px;"><b>నివారణ చర్యలు:</b></h2>
+                        <p style="color: black; font-size: 15px;"><b>{translate_to_telugu(prevent)}</b></p>
                     </div>
                     """,
                     unsafe_allow_html=True
@@ -222,14 +377,14 @@ def telugu_page():
                 col2.markdown(
                     f"""
                     <div style="text-align: center; padding: 8px; background-color: #ffd5a1; border-radius: 30px; border: 1.5px solid black; margin-bottom: 10px;">
-                        <h2 style="color: #111df7; font-size: 20px;"><b>Recommended Supplement:</b> {supplement_name}</h2>
+                        <h2 style="color: #111df7; font-size: 20px;"><b>సిఫార్సు చేసిన అనుబంధం:</b> {translate_to_telugu(supplement_name)}</h2>
                         <div style="text-align: center; margin-top: 10px;">
-                            <img src="{supplement_image_url}" alt="Supplement Image" style="width: 300px; height: auto; border-radius: 15px; border: 1px solid black;">
+                            <img src="{supplement_image_url}" alt="అనుబంధ చిత్రం" style="width: 300px; height: auto; border-radius: 15px; border: 1px solid black;">
                         </div>
                         <div style="margin-top: 15px;">
                             <a href="{supplement_buy_link}" target="_blank" style="text-decoration: none;">
                                 <button style="background-color: red; color: white; font-size: 16px; padding: 10px 20px; border: none; border-radius: 10px; cursor: pointer;">
-                                    Buy Supplement Here
+                                    ఇక్కడ అనుబంధాన్ని కొనుగోలు చేయండి
                                 </button>
                             </a>
                         </div>
@@ -242,19 +397,243 @@ def telugu_page():
     # Navigation menu for user dashboard
     selected_tab = option_menu(
         menu_title=None,
-        options=["వర్షపాతం అంచనా",'పంట వ్యాధులు','లాగ్అవుట్'],
-        icons=['cloud-drizzle-fill','prescription2','unlock-fill'], menu_icon="cast", default_index=0,
+        options=["పంట ధర",'వ్యాధులు','తెగుళ్ళ','కలుపు మొక్కల','వార్తలు','లాగ్అవుట్'],
+        icons=['cash-coin','prescription2','bug-fill','flower1','newspaper','unlock-fill'], menu_icon="cast", default_index=0,
         orientation="horizontal",
     styles={
     "nav-link-selected": {"background-color": "#62f088", "color": "black", "border-radius": "5px"},
     }
     )
-    if selected_tab == "వర్షపాతం అంచనా":
+    if selected_tab == "పంట ధర":
         user_profile()
-    elif selected_tab == "పంట వ్యాధులు":
+    elif selected_tab == "వ్యాధులు":
         diseases()
     elif selected_tab=='లాగ్అవుట్':
         # Logout functionality
         st.cache()
         st.session_state.clear()  # Clear session state to "log out"
         st.experimental_rerun()
+    elif selected_tab=='తెగుళ్ళ':
+        st.markdown(
+            """
+            <style>
+            /* Apply background image to the main content area */
+            .main {
+                background-image: url("https://bloximages.chicago2.vip.townnews.com/mankatofreepress.com/content/tncms/assets/v3/editorial/c/fe/cfe13d3c-282f-11ef-a581-3bd03e631fc8/628d9c250e467.image.jpg?resize=1024%2C770");  
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+                background-color: rgba(255, 255, 255, 0.5); /* Add a semi-transparent overlay */
+                background-blend-mode: overlay; /* Blend the image with the overlay */
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+            )
+        # File uploader
+        col1, col2, col3 = st.columns([1, 3, 1])
+        model = YOLO('best.pt')
+        # File uploader
+        uploaded_file = col2.file_uploader("చిత్రాన్ని ఎంచుకోండి...", type=["jpg", "jpeg", "png"])
+
+        if uploaded_file is not None:
+            # Convert uploaded file to an OpenCV format
+            image = Image.open(uploaded_file)
+            image = np.array(image)
+            
+            # Run YOLOv8 inference on the image
+            results = model(image)
+            annotated_image = results[0].plot()
+            
+            # Display original and annotated images
+            # Extract the class with the highest detection confidence
+            max_detection = max(results[0].boxes.data, key=lambda x: x[4].item(), default=None)
+            def disease_info_box(disease_name):
+                return f"""
+                    <div style="
+                        background-color: rgba(255, 255, 255, 0.6);
+                        padding: 20px;
+                        border-radius: 10px;
+                        text-align: center;
+                        font-size: 30px;
+                        font-weight: bold;
+                        color: red;">
+                        {disease_name}
+                    </div>
+                """
+            if max_detection is not None:
+                col1,col2,col3=st.columns([1,3,1])
+                with col2:
+                    col3,col4=st.columns([6,4])
+                    col3.image(uploaded_file, caption='అప్‌లోడ్ చేసిన చిత్రం')
+                    name=model.names[int(max_detection[5].item())].upper()
+                    name1=translate_to_telugu(name)
+                    col4.markdown(disease_info_box(name1), unsafe_allow_html=True)
+                class_id = int(max_detection[5].item())  # Extract class ID
+                class_name = model.names[class_id]  # Get class name
+                query=class_name+' pest telugu'
+                col1,col2,col3=st.columns([1,3,1])
+                videos = fetch_youtube_videos(query)
+                for i in range(0, len(videos), 2):
+                    cols = col2.columns(2)  # Create 3 columns
+                    for j, video in enumerate(videos[i:i+2]):  # Iterate over videos for the current row
+                        with cols[j]:
+                            st.video(f"https://www.youtube.com/watch?v={video['video_id']}")
+            else:
+                st.markdown(
+                    """
+                    <style>
+                    /* Apply background image to the main content area */
+                    .main {
+                        background-image: url("");  
+                        background-size: cover;
+                        background-position: center;
+                        background-repeat: no-repeat;
+                        background-color: rgba(255, 255, 255, 0.5); /* Add a semi-transparent overlay */
+                        background-blend-mode: overlay; /* Blend the image with the overlay */
+                    }
+                    </style>
+                    """,
+                    unsafe_allow_html=True
+                    )
+                col1,col2,col3=st.columns([1,3,1])
+                col2.image('https://img.freepik.com/free-vector/hand-drawn-no-data-concept_52683-127823.jpg', caption='తెగుళ్లు ఏవీ గుర్తించబడలేదు',use_column_width=True)
+    elif selected_tab=='కలుపు మొక్కల':
+        st.markdown(
+            """
+            <style>
+            /* Apply background image to the main content area */
+            .main {
+                background-image: url("https://img.freepik.com/free-vector/botanical-cannabis-leaf-background_23-2148778834.jpg");  
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+                background-color: rgba(255, 255, 255, 0.5); /* Add a semi-transparent overlay */
+                background-blend-mode: overlay; /* Blend the image with the overlay */
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+            )
+        # File uploader
+        col1, col2, col3 = st.columns([1, 3, 1])
+        labels_path = 'obj.names'
+        LABELS = open(labels_path).read().strip().split("\n")
+
+        # Load YOLO model
+        weights_path = 'crop_weed_detection.weights'
+        config_path = 'crop_weed.cfg'
+
+        # File uploader
+        uploaded_file = col2.file_uploader("చిత్రాన్ని అప్‌లోడ్ చేయండి", type=["jpg", "jpeg", "png"])
+
+        if uploaded_file:
+            # Convert to OpenCV format
+            image = Image.open(uploaded_file)
+            image = np.array(image)
+            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+
+            (H, W) = image.shape[:2]
+
+            # Load YOLO model
+            net = cv2.dnn.readNetFromDarknet(config_path, weights_path)
+
+            # Parameters
+            confi = 0.5
+            thresh = 0.5
+
+            # Get output layer names
+            ln = net.getLayerNames()
+            ln = [ln[i - 1] for i in net.getUnconnectedOutLayers()]
+
+            # Prepare image for YOLO
+            blob = cv2.dnn.blobFromImage(image, 1 / 255.0, (512, 512), swapRB=True, crop=False)
+            net.setInput(blob)
+            layer_outputs = net.forward(ln)
+            # Process detections
+            boxes = []
+            confidences = []
+            classIDs = []
+
+            for output in layer_outputs:
+                for detection in output:
+                    scores = detection[5:]
+                    classID = np.argmax(scores)
+                    confidence = scores[classID]
+
+                    if confidence > confi:
+                        box = detection[0:4] * np.array([W, H, W, H])
+                        (centerX, centerY, width, height) = box.astype("int")
+
+                        x = int(centerX - (width / 2))
+                        y = int(centerY - (height / 2))
+
+                        boxes.append([x, y, int(width), int(height)])
+                        confidences.append(float(confidence))
+                        classIDs.append(classID)
+
+            # Apply Non-Maximum Suppression
+            idxs = cv2.dnn.NMSBoxes(boxes, confidences, confi, thresh)
+
+            if len(idxs) > 0:
+                idxs = idxs.flatten()
+
+                # Get max confidence detection
+                max_index = idxs[np.argmax([confidences[i] for i in idxs])]
+
+                # Extract the bounding box coordinates
+                (x, y) = (boxes[max_index][0], boxes[max_index][1])
+                (w, h) = (boxes[max_index][2], boxes[max_index][3])
+
+                # Draw bounding box
+                color = (255, 255, 255)
+                cv2.rectangle(image, (x, y), (x + w, y + h), color, 2)
+                text = f"{LABELS[classIDs[max_index]]} : {confidences[max_index]:.4f}"
+                cv2.putText(image, text, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
+
+                # Display output
+                col1,col2,col3=st.columns([1,3,1])
+                col2.image(cv2.cvtColor(image, cv2.COLOR_BGR2RGB), caption=LABELS[classIDs[max_index]],use_column_width=True)
+                if LABELS[classIDs[max_index]]=='weed':
+                    query=LABELS[classIDs[max_index]]+' weed control telugu'
+                    col1,col2,col3=st.columns([1,3,1])
+                    videos = fetch_youtube_videos(query)
+                    for i in range(0, len(videos), 2):
+                        cols = col2.columns(2)
+                        for j, video in enumerate(videos[i:i+2]):
+                            with cols[j]:
+                                st.video(f"https://www.youtube.com/watch?v={video['video_id']}")
+            else:
+                st.markdown(
+                    """
+                    <style>
+                    /* Apply background image to the main content area */
+                    .main {
+                        background-image: url("");  
+                        background-size: cover;
+                        background-position: center;
+                        background-repeat: no-repeat;
+                        background-color: rgba(255, 255, 255, 0.5); /* Add a semi-transparent overlay */
+                        background-blend-mode: overlay; /* Blend the image with the overlay */
+                    }
+                    </style>
+                    """,
+                    unsafe_allow_html=True
+                    )
+                col1,col2,col3=st.columns([1,3,1])
+                col2.image('https://img.freepik.com/free-vector/hand-drawn-no-data-concept_52683-127823.jpg', caption='కలుపు మొక్కలు కనుగొనబడలేదు',use_column_width=True)
+
+    elif selected_tab=='వార్తలు':
+        st.write(" ")
+        st.write(" ")
+        st.write(" ")
+        try:
+            query='agriculture news in telugu latest'
+            videos = fetch_youtube_videos(query, max_results=10)
+            for i in range(0, len(videos), 2):
+                cols = st.columns(2)
+                for j, video in enumerate(videos[i:i+2]):
+                    with cols[j]:
+                        st.video(f"https://www.youtube.com/watch?v={video['video_id']}")
+        except:
+            st.error("❌ Failed to fetch news. Please check and try again later.")

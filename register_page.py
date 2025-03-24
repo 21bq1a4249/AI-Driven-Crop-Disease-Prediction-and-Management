@@ -31,6 +31,7 @@ def register_page():
         name = col1.text_input("Name (పేరు)")
         email = col2.text_input("Email (ఇమెయిల్)")
         number = col1.text_input("Phone Number (ఫోన్ నంబర్)")
+        otp=0
         language = col2.selectbox("Preferred Language (మీ ఇష్టమైన భాష)", ["English (ఇంగ్లీష్)", "Telugu (తెలుగు)"])
         if language == "English (ఇంగ్లీష్)":
             lang = "english"
@@ -55,7 +56,7 @@ def register_page():
             elif password != retype_password:
                 st.error("Passwords do not match (పాస్‌వర్డ్‌లు సరిపోలడం లేదు)!")
             else:
-                if register_user(name, email, number, lang, password):
+                if register_user(name, email, number, lang,otp, password):
                     st.success("Registration Successful (నమోదు విజయవంతమైంది)!")
                 else:
                     st.error("Email already exists (మీరు ఇప్పటికే లాగిన్ అయ్యారు)!")  
