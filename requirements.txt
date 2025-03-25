@@ -11,6 +11,6 @@ matplotlib==3.10.0
 pillow
 gdown
 opencv-python==4.10.0.84
-ultralytics
+ultralytics==8.3.17
 googletrans
 seaborn
