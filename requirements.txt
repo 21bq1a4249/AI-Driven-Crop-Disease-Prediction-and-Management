@@ -10,7 +10,6 @@ plotly==5.18.0
 matplotlib==3.10.0
 pillow
 gdown
-opencv-python-headless
 opencv-python==4.10.0.84
 ultralytics
 googletrans
